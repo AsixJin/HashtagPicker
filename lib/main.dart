@@ -32,26 +32,49 @@ class HashGenerator extends StatefulWidget {
 
 class _HashGeneratorState extends State<HashGenerator> {
   List<String> hashtags = new List<String>();
-  static String hashtagString = "";
-  Text hashtagText = new Text(hashtagString);
+  double buttonPadding = 6.0;
+  Text hashtagText = new Text("");
   TextEditingController controller = new TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-
     return new Scaffold(body: new Column(children: <Widget>[
       new AppBar(),
-      new TextField(),
-      new Align(child: new Row(children: <Widget>[ new Expanded(child: new RaisedButton(onPressed: null, child: new Text("Button 1"), )), new Expanded(child: new RaisedButton(onPressed: null, child: new Text("Button 2"),))]), alignment: Alignment.centerRight,),
-      new RaisedButton(onPressed:(){
-        hashtags.add(controller.text);
-        hashtagString = hashtags.toString();
-      }, child: new Text("Button 3"),),
+      new TextField(controller: controller,),
+      new Align(child: new Row(children: <Widget>[buildButton("Add", buttonPadding, true, addHashtag), buildButton("List", buttonPadding, true, null)]), alignment: Alignment.centerRight,),
+      buildButton("Generate", 0.0, false, generateHashtags),
       hashtagText
     ],
     ),
     );
   }
+
+  Widget buildButton(String buttonText, double padding, bool expand, onPressed()){
+    if(expand){
+      return new Expanded(child: new Padding(padding: new EdgeInsets.all(padding), child: new RaisedButton(onPressed: onPressed, child: new Text(buttonText))));
+    }else{
+      return new Padding(padding: new EdgeInsets.all(padding), child: new RaisedButton(onPressed: onPressed, child: new Text(buttonText)));
+    }
+  }
+
+  void addHashtag(){
+    hashtags.add(controller.text);
+  }
+
+  void generateHashtags(){
+    setState((){
+      String generatedHashtags = "";
+      if(hashtags.length > 0){
+        for (int i = 0; i < 3; i++) {
+          generatedHashtags += hashtags[0];
+        }
+      }else{
+        generatedHashtags = "No hashtags to generate!!!";
+      }
+      hashtagText = new Text(generatedHashtags);
+    });
+  }
+
 }
 
 
