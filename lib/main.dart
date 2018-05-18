@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
+
+final _random = new Random();
+
+int next(int min, int max) => min + _random.nextInt(max - min);
 
 void main() => runApp(new MyApp());
 
@@ -24,11 +29,20 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// Stateful Widget
+
 class HashGenerator extends StatefulWidget {
 
   @override
   _HashGeneratorState createState() => new _HashGeneratorState();
 }
+
+class HashList extends StatefulWidget {
+  @override
+  _HashListState createState() => new _HashListState();
+}
+
+// States
 
 class _HashGeneratorState extends State<HashGenerator> {
   List<String> hashtags = new List<String>();
@@ -38,10 +52,10 @@ class _HashGeneratorState extends State<HashGenerator> {
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(body: new Column(children: <Widget>[
-      new AppBar(),
+    return new Scaffold(appBar: new AppBar(title: new Text("Hashtag Generator"),),
+      body: new Column(children: <Widget>[
       new TextField(controller: controller,),
-      new Align(child: new Row(children: <Widget>[buildButton("Add", buttonPadding, true, addHashtag), buildButton("List", buttonPadding, true, null)]), alignment: Alignment.centerRight,),
+      new Align(child: new Row(children: <Widget>[buildButton("Add", buttonPadding, true, addHashtag), buildButton("List", buttonPadding, true, _pushSaved)]), alignment: Alignment.centerRight,),
       buildButton("Generate", 0.0, false, generateHashtags),
       hashtagText
     ],
@@ -59,6 +73,11 @@ class _HashGeneratorState extends State<HashGenerator> {
 
   void addHashtag(){
     hashtags.add(controller.text);
+    controller.text = "";
+  }
+
+  void deleteHashtag(String tag){
+    hashtags.remove(tag);
   }
 
   void generateHashtags(){
@@ -66,13 +85,37 @@ class _HashGeneratorState extends State<HashGenerator> {
       String generatedHashtags = "";
       if(hashtags.length > 0){
         for (int i = 0; i < 3; i++) {
-          generatedHashtags += hashtags[0];
+          generatedHashtags += "#" + hashtags[next(0, hashtags.length-1)] + " ";
         }
       }else{
         generatedHashtags = "No hashtags to generate!!!";
       }
       hashtagText = new Text(generatedHashtags);
     });
+  }
+
+  void _pushSaved(){
+    Navigator.of(context).push(new MaterialPageRoute(builder: (context){
+      final tiles = hashtags.map(
+            (tag) {return new ListTile(title: new Text(tag,), onTap:(){deleteHashtag(tag);_pushSaved();},);},
+      );
+
+      final divided = ListTile.divideTiles(
+        context: context,
+        tiles: tiles,
+      ).toList();
+
+      return new Scaffold(appBar: new AppBar(title: new Text("Saved Hashtags"),), body: new ListView(children: divided));
+    }));
+  }
+
+}
+
+class _HashListState extends State<HashList>{
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(body: new Placeholder(),);
   }
 
 }
