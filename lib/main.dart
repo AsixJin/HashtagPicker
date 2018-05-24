@@ -32,7 +32,6 @@ class MyApp extends StatelessWidget {
 // Stateful Widget
 
 class HashGenerator extends StatefulWidget {
-
   @override
   _HashGeneratorState createState() => new _HashGeneratorState();
 }
@@ -52,72 +51,110 @@ class _HashGeneratorState extends State<HashGenerator> {
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(appBar: new AppBar(title: new Text("Hashtag Generator"),),
-      body: new Column(children: <Widget>[
-      new TextField(controller: controller,),
-      new Align(child: new Row(children: <Widget>[buildButton("Add", buttonPadding, true, addHashtag), buildButton("List", buttonPadding, true, _pushSaved)]), alignment: Alignment.centerRight,),
-      buildButton("Generate", 0.0, false, generateHashtags),
-      hashtagText
-    ],
-    ),
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text("Hashtag Generator"),
+      ),
+      body: new Column(
+        children: <Widget>[
+          new TextField(
+            controller: controller,
+          ),
+          new Align(
+            child: new Row(children: <Widget>[
+              buildButton("Add", buttonPadding, true, addHashtag),
+              buildButton("List", buttonPadding, true, _pushSaved)
+            ]),
+            alignment: Alignment.centerRight,
+          ),
+          buildButton("Generate", 0.0, false, generateHashtags),
+          hashtagText
+        ],
+      ),
     );
   }
 
-  Widget buildButton(String buttonText, double padding, bool expand, onPressed()){
-    if(expand){
-      return new Expanded(child: new Padding(padding: new EdgeInsets.all(padding), child: new RaisedButton(onPressed: onPressed, child: new Text(buttonText))));
-    }else{
-      return new Padding(padding: new EdgeInsets.all(padding), child: new RaisedButton(onPressed: onPressed, child: new Text(buttonText)));
+  Widget buildButton(
+      String buttonText, double padding, bool expand, onPressed()) {
+    if (expand) {
+      return new Expanded(
+          child: new Padding(
+              padding: new EdgeInsets.all(padding),
+              child: new RaisedButton(
+                  onPressed: onPressed, child: new Text(buttonText))));
+    } else {
+      return new Padding(
+          padding: new EdgeInsets.all(padding),
+          child: new RaisedButton(
+              onPressed: onPressed, child: new Text(buttonText)));
     }
   }
 
-  void addHashtag(){
+  void addHashtag() {
     hashtags.add(controller.text);
     controller.text = "";
   }
 
-  void deleteHashtag(String tag){
+  void deleteHashtag(String tag) {
     hashtags.remove(tag);
   }
 
-  void generateHashtags(){
-    setState((){
+  void generateHashtags() {
+    setState(() {
       String generatedHashtags = "";
-      if(hashtags.length > 0){
+      if (hashtags.length > 0) {
         for (int i = 0; i < 3; i++) {
-          generatedHashtags += "#" + hashtags[next(0, hashtags.length-1)] + " ";
+          generatedHashtags +=
+              "#" + hashtags[next(0, hashtags.length - 1)] + " ";
         }
-      }else{
+      } else {
         generatedHashtags = "No hashtags to generate!!!";
       }
       hashtagText = new Text(generatedHashtags);
     });
   }
 
-  void _pushSaved(){
-    Navigator.of(context).push(new MaterialPageRoute(builder: (context){
-      final tiles = hashtags.map(
-            (tag) {return new ListTile(title: new Text(tag,), onTap:(){deleteHashtag(tag);_pushSaved();},);},
+  void _pushSaved() {
+    Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
+      var tiles = hashtags.map(
+        (tag) {
+          return new ListTile(
+            title: new Text(
+              tag,
+            ),
+            onTap: () {
+              deleteHashtag(tag);
+              _pushSaved();
+            },
+          );
+        },
       );
 
-      final divided = ListTile.divideTiles(
-        context: context,
-        tiles: tiles,
-      ).toList();
+      if(tiles.isEmpty){
+        
+      }
 
-      return new Scaffold(appBar: new AppBar(title: new Text("Saved Hashtags"),), body: new ListView(children: divided));
+      final divided = ListTile
+          .divideTiles(
+            context: context,
+            tiles: tiles,
+          )
+          .toList();
+
+      return new Scaffold(
+          appBar: new AppBar(
+            title: new Text("Saved Hashtags"),
+          ),
+          body: new ListView(children: divided));
     }));
   }
-
 }
 
-class _HashListState extends State<HashList>{
-
+class _HashListState extends State<HashList> {
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(body: new Placeholder(),);
+    return new Scaffold(
+      body: new Placeholder(),
+    );
   }
-
 }
-
-
