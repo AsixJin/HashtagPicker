@@ -1,5 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:math';
+
+final key = new GlobalKey<ScaffoldState>();
+final key2 = new GlobalKey<ScaffoldState>();
+
+List<String> hashtags = new List<String>();
+
+void addHashtag(TextEditingController controller) {
+  String toastMsg = "";
+  String tag = controller.text.toLowerCase();
+  controller.text = "";
+
+  if(tag.contains("#")){
+    tag = tag.replaceAll("#", "");
+  }
+
+  if(hashtags.contains(tag)){
+    toastMsg = "Hashtag already exists...";
+  }else if(tag.isEmpty){
+    toastMsg = "Please enter a hashtag...";
+  }else{
+    toastMsg = "#" + tag + " added!";
+    hashtags.add(tag);
+  }
+
+  key.currentState.showSnackBar(new SnackBar(content: new Text(toastMsg),));
+
+}
+
+void deleteHashtag(String tag) {
+  hashtags.remove(tag);
+  key2.currentState.showSnackBar(new SnackBar(content: new Text("#" + tag + " removed!"),));
+}
 
 final _random = new Random();
 
@@ -42,9 +75,7 @@ class HashList extends StatefulWidget {
 }
 
 // States
-
 class _HashGeneratorState extends State<HashGenerator> {
-  List<String> hashtags = new List<String>();
   double buttonPadding = 6.0;
   Text hashtagText = new Text("");
   TextEditingController controller = new TextEditingController();
@@ -52,6 +83,7 @@ class _HashGeneratorState extends State<HashGenerator> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
+      key: key,
       appBar: new AppBar(
         title: new Text("Hashtag Generator"),
       ),
@@ -62,7 +94,8 @@ class _HashGeneratorState extends State<HashGenerator> {
           ),
           new Align(
             child: new Row(children: <Widget>[
-              buildButton("Add", buttonPadding, true, addHashtag),
+              buildButton("Add", buttonPadding, true, () => addHashtag(controller)
+              ),
               buildButton("List", buttonPadding, true, _pushSaved)
             ]),
             alignment: Alignment.centerRight,
@@ -90,71 +123,62 @@ class _HashGeneratorState extends State<HashGenerator> {
     }
   }
 
-  void addHashtag() {
-    hashtags.add(controller.text);
-    controller.text = "";
-  }
-
-  void deleteHashtag(String tag) {
-    hashtags.remove(tag);
-  }
-
   void generateHashtags() {
     setState(() {
+      String toastMsg = "";
       String generatedHashtags = "";
       if (hashtags.length > 0) {
         for (int i = 0; i < 3; i++) {
           generatedHashtags +=
               "#" + hashtags[next(0, hashtags.length - 1)] + " ";
         }
+        Clipboard.setData(new ClipboardData(text: generatedHashtags));
+        hashtagText = new Text(generatedHashtags);
+        toastMsg = "Hashtags have been generated and copied to clipboard";
       } else {
-        generatedHashtags = "No hashtags to generate!!!";
+        toastMsg = "No hashtags to generate!!!";
       }
-      hashtagText = new Text(generatedHashtags);
+
+      key.currentState.showSnackBar(new SnackBar(content: new Text(toastMsg),));
     });
   }
 
   void _pushSaved() {
-    Navigator.of(context).push(new MaterialPageRoute(builder: (context) {
-      var tiles = hashtags.map(
-        (tag) {
-          return new ListTile(
-            title: new Text(
-              tag,
-            ),
-            onTap: () {
-              deleteHashtag(tag);
-              _pushSaved();
-            },
-          );
-        },
-      );
-
-      if(tiles.isEmpty){
-        
-      }
-
-      final divided = ListTile
-          .divideTiles(
-            context: context,
-            tiles: tiles,
-          )
-          .toList();
-
-      return new Scaffold(
-          appBar: new AppBar(
-            title: new Text("Saved Hashtags"),
-          ),
-          body: new ListView(children: divided));
-    }));
+    Navigator.of(context).push(new MaterialPageRoute(builder: (context) => new HashList()));
   }
 }
 
 class _HashListState extends State<HashList> {
   @override
   Widget build(BuildContext context) {
+    List<ListTile> tiles = hashtags.map(
+          (tag) {
+        return new ListTile(
+          title: new Text(
+            "#"+tag,
+          ),
+          onTap: () {
+            setState(() => deleteHashtag(tag));
+          },
+        );
+      },
+    ).toList();
+
+    if(tiles.isEmpty){
+      tiles.add(new ListTile(title: new Text("No hashtags have been saved..."),));
+    }
+
+    final divided = ListTile.divideTiles(
+      context: context,
+      tiles: tiles,
+      color: Colors.black,
+    ).toList();
+
     return new Scaffold(
-      body: new Placeholder(),
-    );
+      key: key2,
+        appBar: new AppBar(
+          title: new Text("Saved Hashtags"),
+        ),
+        body: new Column(children: <Widget>[new Text("Tap to delete a hashtag", style: new TextStyle(fontSize: 20.0),), new Expanded(child: new ListView(children: divided)),]));
   }
 }
