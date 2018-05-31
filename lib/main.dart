@@ -10,45 +10,57 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'dart:math';
 
+//Globalkeys that allow me to use the snackbar (aka toast)
 final generatorKey = new GlobalKey<ScaffoldState>();
-
 final listKey = new GlobalKey<ScaffoldState>();
 
 //region  Hashtag Methods
-List<String> hashtags = new List<String>();
+List<String> hashtags = new List<String>(); //the list of hashtags
 
+//A method used to add hashtags to the list and returns a bool
+//letting the user know if it was added successfully
 bool addHashtag(TextEditingController controller) {
-  String toastMsg = "";
-  String tag = controller.text.toLowerCase();
-  controller.text = "";
-  bool isSuccess = false;
+  String toastMsg = ""; //Toast message string
+  String tag = controller.text.toLowerCase(); //tag to be added which is gotten from the given controller
+  controller.text = ""; //clear the given controller's text
+  bool isSuccess = false; //bool determining if adding hashtag was successful
 
+  //remove the '#' from string...User doesn't need to add that
   if (tag.contains("#")) {
     tag = tag.replaceAll("#", "");
   }
 
+  //remove the spaces
   if(tag.contains(" ")){
     tag = tag.replaceAll(" ", "");
   }
 
+  //Check to see if the hashtag is already in the list to avoid duplicates
   if (hashtags.contains(tag)) {
-    toastMsg = "Hashtag already exists...";
-  } else if (tag.isEmpty) {
-    toastMsg = "Please enter a hashtag...";
+    toastMsg = "Hashtag already exists..."; //if so let the user know
+  } else if (tag.isEmpty) { //Now check if the given hashtag is empty
+    toastMsg = "Please enter a hashtag..."; //if so let the user know
   } else {
+    //otherwise let the user know the hashtag has added
     toastMsg = "#" + tag + " added!";
-    hashtags.add(tag);
-    isSuccess = true;
+    hashtags.add(tag); //add the hashtag
+    isSuccess = true; //set the success bool to true
   }
 
+  //Display the toast/snackbar
   generatorKey.currentState.showSnackBar(new SnackBar(
     content: new Text(toastMsg),
   ));
+
+  //return whether the operation was successfully
   return isSuccess;
 }
 
+//A method used to remove a hashtag from the list
 void deleteHashtag(String tag) {
+  //remove the hashtag
   hashtags.remove(tag);
+  //let the user know it was removed via toast/snackbar
   listKey.currentState.showSnackBar(new SnackBar(
     content: new Text("#" + tag + " removed!"),
   ));
@@ -94,14 +106,15 @@ class ListStorage {
 //endregion
 
 //region Random Methods
-final _random = new Random();
+final _random = new Random(); //variable to help get random numbers
 
+//random number method
 int next(int min, int max) => min + _random.nextInt(max - min);
 //endregion
 
 //region Hash Generator
 class HashGenerator extends StatefulWidget {
-  final ListStorage storage;
+  final ListStorage storage; //the class that handles saving and loading
 
   HashGenerator({Key key, @required this.storage}) : super(key: key);
 
@@ -110,10 +123,10 @@ class HashGenerator extends StatefulWidget {
 }
 
 class _HashGeneratorState extends State<HashGenerator> {
-  double buttonPadding = 6.0;
-  Text hashtagText = new Text("");
-  TextEditingController controller = new TextEditingController();
-  TextEditingController controller2 = new TextEditingController();
+  double buttonPadding = 6.0; //padding around all the buttons
+  Text hashtagText = new Text(""); //the textview of the generated hashtags
+  TextEditingController controller = new TextEditingController(); //Text controller for the hashtag text field
+  TextEditingController controller2 = new TextEditingController(); //Text controller for the number of hashtag text field
 
   @override
   void initState() {
@@ -167,8 +180,8 @@ class _HashGeneratorState extends State<HashGenerator> {
     );
   }
 
-  Widget buildButton(
-      String buttonText, double padding, bool expand, onPressed()) {
+  //A helper method that builds a button the way I need them
+  Widget buildButton(String buttonText, double padding, bool expand, onPressed()) {
     if (expand) {
       return new Expanded(
           child: new Padding(
@@ -183,30 +196,47 @@ class _HashGeneratorState extends State<HashGenerator> {
     }
   }
 
+  //A method to generate a hashtag string for the user
   void generateHashtags(String numOfHash) {
     setState(() {
-      int num = int.parse(numOfHash);
-      String toastMsg = "";
-      String generatedHashtags = "";
+      String toastMsg = ""; //The toast message to be displayed
+      String generatedHashtags = ""; //The generated hashtag string
+      //Get the number from user input
+      int num = int.parse(numOfHash, onError: (string)=>1);
+      //Check to see if the number is in between 1 and 100
+      if(num > 100){
+        num = 100;
+      }else if(num < 1){
+        num = 1;
+      }
+      //Check to see if we have hashtags to generate
       if (hashtags.length > 0) {
+        //if so than we generate the number of hashtags asked for
         for (int i = 0; i < num; i++) {
           generatedHashtags +=
-              "#" + hashtags[next(0, hashtags.length - 1)] + " ";
+              "#" + hashtags[next(0, hashtags.length)] + " ";
         }
+        //then set it to the user's clipboard
         Clipboard.setData(new ClipboardData(text: generatedHashtags));
+        //and display the generated hashtags to the user
         hashtagText = new Text(generatedHashtags);
+        //Then let the user know whats happened via toast
         toastMsg = "Hashtags have been generated and copied to clipboard";
       } else {
+        //if not than tell the use via toast
         toastMsg = "No hashtags to generate!!!";
       }
 
+      //Display the toast which will have the results of the generation
       generatorKey.currentState.showSnackBar(new SnackBar(
         content: new Text(toastMsg),
       ));
     });
   }
 
+  //A method to navigate to the hashtag list
   void _pushSaved() {
+    //This navigates to the hashtag list so the user can view and delete them
     Navigator
         .of(context)
         .push(new MaterialPageRoute(builder: (context) => new HashList(storage: new ListStorage())));
@@ -216,7 +246,7 @@ class _HashGeneratorState extends State<HashGenerator> {
 
 //region Hash List
 class HashList extends StatefulWidget {
-  final ListStorage storage;
+  final ListStorage storage; //the class that handles saving and loading
 
   HashList({Key key, @required this.storage}) : super(key: key);
 
@@ -227,6 +257,7 @@ class HashList extends StatefulWidget {
 class _HashListState extends State<HashList> {
   @override
   Widget build(BuildContext context) {
+    //Generate a listTile for every hashtag in the list
     List<ListTile> tiles = hashtags.map(
       (tag) {
         return new ListTile(
@@ -241,12 +272,14 @@ class _HashListState extends State<HashList> {
       },
     ).toList();
 
+    //if there aren't any hashtags create a special listTile to let the user know
     if (tiles.isEmpty) {
       tiles.add(new ListTile(
         title: new Text("No hashtags have been saved..."),
       ));
     }
 
+    //prepare listTiles to be displayed
     final divided = ListTile
         .divideTiles(
           context: context,
