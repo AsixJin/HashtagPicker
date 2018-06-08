@@ -213,8 +213,7 @@ class _HashGeneratorState extends State<HashGenerator> {
       if (hashtags.length > 0) {
         //if so than we generate the number of hashtags asked for
         for (int i = 0; i < num; i++) {
-          generatedHashtags +=
-              "#" + hashtags[next(0, hashtags.length)] + " ";
+          generatedHashtags += "#" + hashtags[next(0, hashtags.length)] + " ";
         }
         //then set it to the user's clipboard
         Clipboard.setData(new ClipboardData(text: generatedHashtags));
